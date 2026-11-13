@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Planning Instagram de Lily</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&display=swap">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Planning">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f7f5f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141215" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex, nofollow">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html, body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+<style>
+/* Layout : une seule semaine à l'écran, 7 colonnes de jours (défilement horizontal sur téléphone) ; chaque tâche = une petite carte ; le détail s'ouvre en panneau. */
+:root {
+  --bg: #f7f5f6;
+  --surface: #ffffff;
+  --ink: #1c1a1e;
+  --muted: #6c6570;
+  --line: #e7e2e6;
+  --accent: #c2255c;
+  --reel-bg: #fbe2ec;  --reel-fg: #a1164a;
+  --post-bg: #e1eafa;  --post-fg: #22509a;
+  --story-bg: #fdead3; --story-fg: #92480a;
+  --prep-bg: #ecebee;  --prep-fg: #4a4650;
+  --shadow: 0 1px 2px rgba(28, 26, 30, .06), 0 8px 24px rgba(28, 26, 30, .07);
+  --shadow-strong: 0 0 0 1px rgba(28, 26, 30, .06), 0 24px 60px rgba(28, 26, 30, .18);
+  --backdrop: rgba(28, 26, 30, .38);
+  --font-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141215; --surface: #1d1a1f; --ink: #f1edf2; --muted: #a39ca7; --line: #2d292f; --accent: #ff7aa8;
+    --reel-bg: #3b1727;  --reel-fg: #ff9cc0;
+    --post-bg: #172742;  --post-fg: #93b9ff;
+    --story-bg: #3a250f; --story-fg: #ffc283;
+    --prep-bg: #28252b;  --prep-fg: #cfc9d2;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .25);
+    --shadow-strong: 0 0 0 1px rgba(255, 255, 255, .06), 0 24px 60px rgba(0, 0, 0, .5);
+    --backdrop: rgba(0, 0, 0, .6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141215; --surface: #1d1a1f; --ink: #f1edf2; --muted: #a39ca7; --line: #2d292f; --accent: #ff7aa8;
+  --reel-bg: #3b1727;  --reel-fg: #ff9cc0;
+  --post-bg: #172742;  --post-fg: #93b9ff;
+  --story-bg: #3a250f; --story-fg: #ffc283;
+  --prep-bg: #28252b;  --prep-fg: #cfc9d2;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .25);
+  --shadow-strong: 0 0 0 1px rgba(255, 255, 255, .06), 0 24px 60px rgba(0, 0, 0, .5);
+  --backdrop: rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-block: 32px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* En-tête */
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
+.handle { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: .02em; margin: 0 0 4px; }
+h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(30px, 4.6vw, 44px);
+  line-height: 1.02;
+  letter-spacing: -.015em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+/* Navigation de semaine */
+.weeknav { display: flex; align-items: center; gap: 10px; }
+.arrow {
+  appearance: none;
+  width: 42px; height: 42px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  display: grid; place-items: center;
+  cursor: pointer; flex: none;
+}
+.arrow svg { width: 18px; height: 18px; }
+.arrow:disabled { opacity: .35; cursor: default; }
+.week-label { min-width: 0; text-align: center; padding: 0 4px; }
+.wl-name { display: block; font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wl-theme { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+.hint { margin: 0; color: var(--muted); font-size: 14px; }
+
+/* Les 7 colonnes */
+.days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+.day {
+  min-width: 0;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  min-height: 240px;
+}
+.day.is-empty { background: transparent; border-style: dashed; }
+.day.is-today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; padding: 2px 2px 4px; }
+.dname { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.today-badge { display: block; font-size: 10.5px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.dnum { font-family: var(--font-display); font-size: 22px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.day-items { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
+.free { margin: auto 0; text-align: center; color: var(--muted); font-size: 13px; }
+
+/* Cartes */
+.reel  { --t-bg: var(--reel-bg);  --t-fg: var(--reel-fg); }
+.post  { --t-bg: var(--post-bg);  --t-fg: var(--post-fg); }
+.story { --t-bg: var(--story-bg); --t-fg: var(--story-fg); }
+.prep  { --t-bg: var(--prep-bg);  --t-fg: var(--prep-fg); }
+.card {
+  appearance: none; border: 0; width: 100%;
+  text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 10px 11px;
+  border-radius: 12px;
+  background: var(--t-bg);
+  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+.card:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+.card-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; color: var(--t-fg); }
+.card-type { display: flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.card-type svg, .tag svg, .check svg { width: 13px; height: 13px; flex: none; }
+.check { display: none; color: var(--t-fg); }
+.card-title {
+  font-size: 13.5px; line-height: 1.35; font-weight: 500; color: var(--ink);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.card-time { font-size: 12px; color: var(--t-fg); font-variant-numeric: tabular-nums; }
+.card.done { opacity: .5; }
+.card.done .card-title { text-decoration: line-through; }
+.card.done .check { display: inline-flex; }
+
+.tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  font-size: 11.5px; font-weight: 600;
+  letter-spacing: .04em; text-transform: uppercase; line-height: 1.3;
+  background: var(--t-bg); color: var(--t-fg);
+}
+
+.foot-note { margin: 0; font-size: 12.5px; color: var(--muted); }
+
+/* Panneau de détail */
+.backdrop {
+  position: fixed; inset: 0; z-index: 40;
+  background: var(--backdrop);
+  opacity: 0; visibility: hidden;
+  transition: opacity .2s ease, visibility 0s linear .2s;
+}
+.backdrop.open { opacity: 1; visibility: visible; transition: opacity .2s ease; }
+.panel {
+  position: fixed; z-index: 50;
+  top: 0; right: 0; bottom: 0;
+  width: min(480px, 100%);
+  background: var(--surface); color: var(--ink);
+  box-shadow: var(--shadow-strong);
+  display: flex; flex-direction: column;
+  padding-top: calc(22px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  padding-left: 26px;
+  padding-right: max(26px, env(safe-area-inset-right, 0px));
+  gap: 18px;
+  transform: translateX(104%);
+  visibility: hidden;
+  transition: transform .26s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .26s;
+}
+.panel.open { transform: none; visibility: visible; transition: transform .26s cubic-bezier(.2, .8, .2, 1); }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.close {
+  appearance: none; border: 1px solid var(--line); background: var(--surface);
+  width: 36px; height: 36px; border-radius: 999px; cursor: pointer;
+  display: grid; place-items: center; color: var(--muted); flex: none;
+}
+.close svg { width: 16px; height: 16px; }
+.panel-scroll { overflow-y: auto; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 22px; padding-right: 2px; }
+.p-when { margin: 0; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.p-title { font-family: var(--font-display); font-size: 24px; font-weight: 700; line-height: 1.15; margin: 4px 0 0; text-wrap: balance; }
+.fields { display: flex; flex-direction: column; gap: 22px; }
+.field { display: flex; flex-direction: column; gap: 8px; }
+.field h3 { margin: 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.field p { margin: 0; max-width: 60ch; white-space: pre-line; }
+.quote { padding: 12px 14px; border-radius: 12px; background: var(--bg); font-size: 15.5px; line-height: 1.55; }
+.copy {
+  align-self: flex-start;
+  appearance: none; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 999px; padding: 5px 12px; font-size: 12.5px; font-weight: 500; cursor: pointer; color: var(--ink);
+}
+.done-btn {
+  appearance: none; border: 1px solid var(--ink);
+  padding: 13px 16px; border-radius: 12px;
+  background: var(--ink); color: var(--bg);
+  font-weight: 600; cursor: pointer; width: 100%;
+}
+.done-btn.is-done { background: transparent; color: var(--ink); border-color: var(--line); }
+
+/* Téléphone et tablette : on garde les colonnes, on les fait défiler */
+@media (max-width: 900px) {
+  .wrap { padding-block: 22px 40px; gap: 18px; }
+  .top { align-items: flex-start; }
+  .weeknav { width: 100%; justify-content: space-between; }
+  .days {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(200px, 72%);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+  }
+  .day { scroll-snap-align: start; min-height: 300px; }
+  .panel {
+    top: auto; left: 0; right: 0; bottom: 0;
+    width: auto; max-height: 88vh;
+    border-radius: 22px 22px 0 0;
+    padding-top: 18px;
+    padding-left: max(20px, env(safe-area-inset-left, 0px));
+    padding-right: max(20px, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    transform: translateY(104%);
+  }
+  .p-title { font-size: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card, .panel, .panel.open, .backdrop, .backdrop.open { transition: none; }
+  .days { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="page">
+  <header class="top">
+    <div>
+      <p class="handle">@lilydrevon</p>
+      <h1>Ma semaine Instagram</h1>
+    </div>
+    <nav class="weeknav" aria-label="Changer de semaine">
+      <button class="arrow" id="prev" type="button" aria-label="Semaine précédente">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5L5.5 8l4.5 4.5"/></svg>
+      </button>
+      <div class="week-label" aria-live="polite">
+        <span class="wl-name" id="wl-name"></span>
+        <span class="wl-theme" id="wl-theme"></span>
+      </div>
+      <button class="arrow" id="next" type="button" aria-label="Semaine suivante">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5L10.5 8 6 12.5"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <p class="hint">Touche une carte pour voir ce que tu dois faire.</p>
+
+  <main class="days" id="days" aria-label="Jours de la semaine"></main>
+
+  <p class="foot-note">Les cartes marquées comme faites sont gardées sur cet appareil.</p>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="p-title">
+  <div class="panel-head">
+    <span class="tag" id="p-tag"></span>
+    <button class="close" id="close" type="button" aria-label="Fermer">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+    </button>
+  </div>
+  <div class="panel-scroll">
+    <div>
+      <p class="p-when" id="p-when"></p>
+      <h2 class="p-title" id="p-title"></h2>
+    </div>
+    <div class="fields" id="p-fields"></div>
+  </div>
+  <button class="done-btn" id="done-btn" type="button"></button>
+</aside>
+
+<script>
+(function () {
+  var ICONS = {
+    reel: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="12" height="12" rx="3.2"/><path d="M6.6 5.4v5.2l4.2-2.6z" fill="currentColor" stroke="none"/></svg>',
+    post: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="12" height="12" rx="2.2"/><path d="M2 8h12M8 2v12"/></svg>',
+    story: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.8" stroke-dasharray="3.2 1.7"/><circle cx="8" cy="8" r="2.2" fill="currentColor" stroke="none"/></svg>',
+    prep: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2.5 7h11v5.5a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M2.5 7l.9-3.6 10 2.5"/><path d="M6 4.2l1.2 2.4M9.4 5l1.2 2"/></svg>',
+    check: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg>'
+  };
+
+  var LABELS = { reel: "Reel", post: "Post", story: "Story", prep: "Prépa" };
+
+  // Ordre et intitulés des rubriques du détail. Les rubriques à copier ont un bouton « Copier ».
+  var FIELDS = [
+    { key: "hook",    copy: true,  quote: true,  label: { reel: "Accroche", post: "Première ligne", story: "Texte de la story", prep: "Accroche" } },
+    { key: "script",  copy: true,  quote: true,  label: "Ce que tu dis" },
+    { key: "screen",  copy: false, quote: false, label: "Texte à l'écran" },
+    { key: "film",    copy: false, quote: false, label: { reel: "Plan par plan", post: "Photos", story: "Quoi poster", prep: "À faire" } },
+    { key: "caption", copy: true,  quote: true,  label: "Légende" },
+    { key: "notes",   copy: false, quote: false, label: "Bon à savoir" }
+  ];
+
+  var WEEKS = [
+    { start: "2026-11-09", name: "9 – 15 nov.",       theme: "Ménage du feed" },
+    { start: "2026-11-16", name: "16 – 22 nov.",      theme: "Semaine 1 · Le retour" },
+    { start: "2026-11-23", name: "23 – 29 nov.",      theme: "Semaine 2 · L'après-concours" },
+    { start: "2026-11-30", name: "30 nov. – 6 déc.",  theme: "Semaine 3 · Mon quotidien" },
+    { start: "2026-12-07", name: "7 – 13 déc.",       theme: "Semaine 4 · Vos questions" }
+  ];
+
+  var ITEMS = [
+    { d: "2026-11-14", type: "prep", title: "Ménage du feed : archiver les Reels trading",
+      film: "Archive (sans supprimer) les 9 Reels trading : les 7 « Rejoins mon groupe » du 3 au 11 mars et les 2 « Les pertes font partie du jeu ».",
+      notes: "Sur chaque Reel : ⋯ > Archiver. Ils restent récupérables." },
+    { d: "2026-11-14", type: "prep", title: "Épingler 3 posts",
+      film: "Carrousel « Tour Eiffel », photo 🎓 de septembre, Reel « Medschool be like ».",
+      notes: "Le Reel du 18/11 remplacera l'un des trois." },
+
+    { d: "2026-11-16", type: "prep", title: "Tourner les Reels du 18 et du 25 + choisir les photos du post",
+      film: "Reel du 18 : face caméra en lumière naturelle, un cut à chaque phrase.\nReel du 25 : 6 plans de 2-3 s, sans voix.\nPhotos : sélectionne 6-8 photos de ces derniers mois pour le post du 20.",
+      notes: "Environ 1 h. Avant de tourner, remplace [ton nombre] par ton vrai nombre d'heures de révisions dans le script du 18." },
+    { d: "2026-11-16", type: "story", time: "Dans la journée", title: "Teaser du retour",
+      hook: "Ça fait 5 mois… je reviens 👀",
+      film: "3 stories : un selfie vidéo, ton bureau ou ta chambre, un sondage « Vous êtes toujours là ? »." },
+    { d: "2026-11-18", type: "reel", time: "10:00", title: "Le retour : 5 mois sans poster",
+      hook: "5 mois sans poster. Voilà ce que le concours m'a coûté.",
+      script: "5 mois sans poster.\nVoilà ce que le concours m'a coûté.\nSi t'as déjà disparu pour des exams, tu comprends.\nJ'suis en médecine. 6 ans.\nCes 5 derniers mois : fiches, café,\net [ton nombre] heures de révisions par jour.\nMa vie sociale était en pause, on va dire.\nBon. Le concours, c'est fait.\nDu coup, première fois en 6 ans,\nj'ai le temps de vivre.\nIci, 1 Reel par semaine :\nl'hôpital dès que j'y retourne, les voyages,\nles bonnes adresses et tout le quotidien entre les deux.\nAbonne-toi, les 5 mois sans poster, c'est fini.",
+      screen: "0:00 · 5 MOIS SANS POSTER (dès la 1re image)\n0:01 · CE QUE ÇA M'A COÛTÉ\n0:09 · FICHES, CAFÉ, [TON NOMBRE] H/JOUR\n0:17 · CONCOURS : FAIT\n0:23 · 1 REEL PAR SEMAINE\n0:31 · ABONNE-TOI\n+ sous-titres blancs en majuscules tout du long, au milieu de l'image.",
+      film: "0:00 · Tu poses une pile de fiches sur la table, face caméra.\n0:01 à 0:09 · Face caméra, un cut à chaque phrase.\n0:09 à 0:14 · Fiches étalées, tasse de café, bureau le soir.\n0:14 à 0:19 · Face caméra ; sur « c'est fait », tu fermes un classeur.\n0:19 à 0:23 · Toi dehors, en balade ou au café.\n0:23 à 0:31 · 3 plans rapides : blouse, valise, assiette au resto.\n0:31 · Face caméra, tu montres le bas de l'écran.",
+      caption: "5 mois de silence, un concours et beaucoup trop de café ☕ Je reviens, et cette fois je vous emmène partout : l'hôpital, les voyages, le vrai quotidien. Vous restez ?",
+      notes: "Environ 30-35 s. À épingler en 1re position. Réponds aux commentaires dans l'heure qui suit." },
+    { d: "2026-11-18", type: "story", time: "Après le Reel", title: "Partager le Reel",
+      hook: "Je suis de retour, dites-moi ce que vous en pensez 🫶",
+      film: "Repartage du Reel en story." },
+    { d: "2026-11-20", type: "post", time: "10:00", title: "Carrousel : mes 5 derniers mois en photos",
+      hook: "Ce que personne ne voit derrière un concours de médecine 📚",
+      film: "6-8 photos : fiches, bureau, cafés, jour du concours, premier jour de liberté, une sortie. Mélange révisions et perso.",
+      caption: "Raconte ces mois en 3 phrases, puis : « Et vous, vous êtes à quelle étape de votre vie en ce moment ? »" },
+    { d: "2026-11-20", type: "story", time: "Dans la journée", title: "Boîte à questions",
+      hook: "Posez-moi toutes vos questions : médecine, vie perso, UGC…",
+      film: "Sticker question sur une photo ou une vidéo de toi.",
+      notes: "Garde les réponses : elles servent pour le Reel du 9/12." },
+    { d: "2026-11-22", type: "story", time: "Le soir", title: "Dump du week-end",
+      film: "3-5 photos ou vidéos de ton week-end, sans prise de tête." },
+
+    { d: "2026-11-23", type: "prep", title: "Monter le Reel du 25 + choisir les photos du post",
+      film: "Assemble les 6 plans tournés le 16, ajoute le texte et choisis une musique tendance dans Instagram. Prépare les photos en paires pour le post du 27.",
+      notes: "15-20 min." },
+    { d: "2026-11-23", type: "story", time: "Dans la journée", title: "Sondage contenu",
+      hook: "Vous voulez voir quoi en premier ?",
+      film: "Sondage : Vlog / Hôpital / Voyages / Food.",
+      notes: "Le résultat oriente les semaines suivantes." },
+    { d: "2026-11-25", type: "reel", time: "10:00", title: "Ma première semaine sans réviser",
+      hook: "Moi, ma première semaine sans réviser depuis 6 ans",
+      screen: "Toute la vidéo · 1RE SEMAINE SANS RÉVISER\nÀ partir de 0:02 · (EN 6 ANS)\nPas de voix : seulement une musique tendance.",
+      film: "0:00 · Tu ranges tes fiches dans un carton.\n0:02 · Ton réveil sonne, tu l'éteins et tu te recouches.\n0:05 · Tu fixes ton bureau vide.\n0:07 · 15:00 sur ton téléphone, puis toi sous la couette.\n0:10 · Tu ouvres le frigo, tu le refermes, tu le rouvres.\n0:12 · Tu rouvres une fiche, tu regardes la caméra, tu la refermes. Retour au carton du début : la vidéo boucle.",
+      caption: "Le vide après 6 ans de révisions, c'est réel 😭 Envoie ça à quelqu'un qui comprend.",
+      notes: "Environ 15 s. Vérifie que « première semaine sans réviser depuis 6 ans » est vrai pour toi ; sinon : « mon premier lundi sans réviser »." },
+    { d: "2026-11-25", type: "story", time: "Après le Reel", title: "Partager le Reel",
+      hook: "Vous aussi vous êtes comme ça après un exam ? 😂",
+      film: "Repartage du Reel + sondage Oui / Trop." },
+    { d: "2026-11-27", type: "post", time: "10:00", title: "Carrousel : pendant les révisions vs aujourd'hui",
+      hook: "Ma journée pendant les révisions vs ma journée aujourd'hui",
+      film: "Photos en paires : réveil 6 h 30 vs 10 h, fiches vs brunch, bibliothèque vs balade… Un texte court sur chaque photo.",
+      caption: "Un petit récap avec humour, puis : « Tu es plutôt team révisions ou team liberté en ce moment ? »" },
+    { d: "2026-11-27", type: "story", time: "Dans la journée", title: "Réponses à la boîte à questions",
+      film: "Réponds à 3-4 questions, face caméra ou en texte sur photo.",
+      notes: "Garde les meilleures pour le Reel FAQ du 9/12." },
+    { d: "2026-11-29", type: "story", time: "Le soir", title: "Dump de la semaine",
+      film: "3-5 photos ou vidéos de ta semaine." },
+
+    { d: "2026-11-30", type: "prep", title: "Filmer une journée complète pour le vlog",
+      film: "10-15 clips de 2-3 s tout au long de la journée (lundi ou mardi). Note l'heure de chaque moment.",
+      notes: "Filme à la verticale, en lumière naturelle." },
+    { d: "2026-11-30", type: "story", time: "Dans la journée", title: "Coulisses du tournage",
+      hook: "Je filme ma journée pour vous aujourd'hui 🎬",
+      film: "2-3 stories pendant que tu filmes." },
+    { d: "2026-12-02", type: "reel", time: "10:00", title: "Une journée avec moi",
+      hook: "Passe la journée avec moi ☕",
+      film: "Réveil, café, sport ou balade, travail UGC, courses, soirée. L'heure et l'activité écrites sur chaque plan. Musique tendance.",
+      caption: "Mes journées en ce moment, avant que l'internat me rattrape 😅 Vous voulez la version hôpital bientôt ?",
+      notes: "Même format que les vlogs « journée avec moi » qui cartonnent en ce moment." },
+    { d: "2026-12-02", type: "story", time: "Après le Reel", title: "Partager le Reel",
+      hook: "Version hôpital ?",
+      film: "Repartage du Reel + sondage Oui / Grave." },
+    { d: "2026-12-04", type: "post", time: "10:00", title: "Carrousel : 5 leçons de 6 ans de médecine (hors médecine)",
+      hook: "6 ans de médecine m'ont appris 5 choses… et aucune n'est médicale",
+      film: "5-6 photos de toi, une leçon écrite par photo (ex. : la discipline bat la motivation).",
+      caption: "Développe une leçon en 2 phrases, puis : « Laquelle te parle le plus ? »",
+      notes: "Ce format est beaucoup sauvegardé." },
+    { d: "2026-12-04", type: "story", time: "Dans la journée", title: "Quiz lié au post",
+      hook: "Devine combien d'heures je révisais par jour 👀",
+      film: "Sticker quiz avec 3-4 réponses." },
+    { d: "2026-12-06", type: "story", time: "Le soir", title: "Dump de la semaine",
+      film: "3-5 photos ou vidéos de ta semaine." },
+
+    { d: "2026-12-07", type: "prep", title: "Tourner le Reel FAQ + choisir les photos des adresses",
+      film: "Choisis 4-5 questions reçues le 20/11. Une prise par question.",
+      notes: "30 min." },
+    { d: "2026-12-07", type: "story", time: "Dans la journée", title: "Teaser FAQ",
+      hook: "Vous m'avez posé vos questions… réponses mercredi 👀",
+      film: "1-2 stories teaser." },
+    { d: "2026-12-09", type: "reel", time: "10:00", title: "FAQ : je réponds à vos questions",
+      hook: "Je réponds à vos questions (même les plus gênantes)",
+      film: "Face caméra. Une question écrite à l'écran par plan, une réponse courte (5-8 s chacune).",
+      caption: "Partie 2 ? Pose ta question en commentaire 👇" },
+    { d: "2026-12-09", type: "story", time: "Après le Reel", title: "Partager le Reel",
+      film: "Repartage du Reel + nouvelle boîte à questions pour la partie 2." },
+    { d: "2026-12-11", type: "post", time: "10:00", title: "Carrousel : mes adresses food préférées",
+      hook: "Mes 5 adresses préférées à Grenoble (garde ce post)",
+      film: "Une photo par adresse + le nom + ce qu'il faut commander.",
+      caption: "Identifie les restos, puis : « Ton adresse préférée en commentaire, je teste ! »",
+      notes: "Adapte la ville si besoin. Ton Reel resto est celui qui a touché le plus de monde." },
+    { d: "2026-12-11", type: "story", time: "Dans la journée", title: "Repartager le post",
+      film: "Repartage du carrousel + identifie les restos." },
+    { d: "2026-12-13", type: "story", time: "Le soir", title: "Bilan du mois",
+      hook: "1 mois depuis mon retour 🫶",
+      film: "Merci à ceux qui sont là + sondage « Vous voulez plus de quoi ? »." }
+  ];
+
+  // Identifiants stables : date + rang dans la journée
+  var perDay = {};
+  ITEMS.forEach(function (it) {
+    perDay[it.d] = (perDay[it.d] || 0) + 1;
+    it.id = it.d + "-" + perDay[it.d];
+  });
+
+  var DAYS_SHORT = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+  var DAYS_LONG = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+  var MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function parseISO(s) { var p = s.split("-"); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); }
+  function toISO(d) { return d.getUTCFullYear() + "-" + pad(d.getUTCMonth() + 1) + "-" + pad(d.getUTCDate()); }
+  function addDays(d, n) { return new Date(d.getTime() + n * 86400000); }
+  function weekday(d) { return (d.getUTCDay() + 6) % 7; }
+  function localTodayISO() { var t = new Date(); return t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate()); }
+
+  // Espaces insécables de la typographie française (« … », : ? !)
+  function typo(s) {
+    return String(s).replace(/« /g, "« ").replace(/ »/g, " »").replace(/ ([:?!;])/g, " $1");
+  }
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = typo(text);
+    return n;
+  }
+
+  // Cartes faites : gardées sur cet appareil seulement
+  var KEY = "lily-planning-fait";
+  var done = new Set();
+  try { var raw = localStorage.getItem(KEY); if (raw) done = new Set(JSON.parse(raw)); } catch (e) {}
+  function saveDone() { try { localStorage.setItem(KEY, JSON.stringify(Array.from(done))); } catch (e) {} }
+
+  // Semaine affichée au départ : celle d'aujourd'hui (ou la plus proche)
+  var today = localTodayISO();
+  var current = 0;
+  for (var i = 0; i < WEEKS.length; i++) {
+    var s = WEEKS[i].start, e = toISO(addDays(parseISO(s), 6));
+    if (today >= s && today <= e) { current = i; break; }
+    if (today > e) current = Math.min(i + 1, WEEKS.length - 1);
+  }
+
+  function renderWeek() {
+    var w = WEEKS[current];
+    $("wl-name").textContent = "Semaine du " + w.name;
+    $("wl-theme").textContent = typo(w.theme);
+    $("prev").disabled = current === 0;
+    $("next").disabled = current === WEEKS.length - 1;
+
+    var start = parseISO(w.start);
+    var days = $("days");
+    days.textContent = "";
+    var todayCol = null;
+
+    for (var k = 0; k < 7; k++) {
+      var date = addDays(start, k), iso = toISO(date);
+      var items = ITEMS.filter(function (it) { return it.d === iso; });
+      var day = el("section", "day" + (items.length ? "" : " is-empty") + (iso === today ? " is-today" : ""));
+      day.setAttribute("aria-label", DAYS_LONG[k] + " " + date.getUTCDate() + " " + MONTHS[date.getUTCMonth()]);
+
+      var head = el("div", "day-head");
+      var left = el("div");
+      left.appendChild(el("span", "dname", DAYS_SHORT[k]));
+      if (iso === today) left.appendChild(el("span", "today-badge", "Aujourd'hui"));
+      head.appendChild(left);
+      head.appendChild(el("span", "dnum", String(date.getUTCDate())));
+      day.appendChild(head);
+
+      var list = el("div", "day-items");
+      if (!items.length) list.appendChild(el("p", "free", "Libre"));
+      items.forEach(function (it) { list.appendChild(cardFor(it)); });
+      day.appendChild(list);
+      days.appendChild(day);
+      if (iso === today) todayCol = day;
+    }
+
+    // Sur téléphone, on amène la colonne d'aujourd'hui (sinon lundi) en vue
+    days.scrollLeft = 0;
+    if (todayCol && days.scrollWidth > days.clientWidth) {
+      days.scrollLeft = todayCol.offsetLeft - days.offsetLeft;
+    }
+  }
+
+  function cardFor(it) {
+    var b = el("button", "card " + it.type + (done.has(it.id) ? " done" : ""));
+    b.type = "button";
+    b.setAttribute("data-id", it.id);
+    var top = el("span", "card-top");
+    var type = el("span", "card-type");
+    type.innerHTML = ICONS[it.type];
+    type.appendChild(document.createTextNode(LABELS[it.type]));
+    var check = el("span", "check");
+    check.innerHTML = ICONS.check;
+    check.setAttribute("aria-label", "Fait");
+    top.appendChild(type);
+    top.appendChild(check);
+    b.appendChild(top);
+    b.appendChild(el("span", "card-title", it.title));
+    if (it.time) b.appendChild(el("span", "card-time", it.time));
+    b.addEventListener("click", function () { openPanel(it, b); });
+    return b;
+  }
+
+  $("prev").addEventListener("click", function () { if (current > 0) { current--; renderWeek(); } });
+  $("next").addEventListener("click", function () { if (current < WEEKS.length - 1) { current++; renderWeek(); } });
+
+  // Panneau de détail
+  var openItem = null, lastFocus = null;
+  var panel = $("panel"), backdrop = $("backdrop"), page = $("page");
+
+  function openPanel(it, from) {
+    openItem = it;
+    lastFocus = from;
+    var tag = $("p-tag");
+    tag.className = "tag " + it.type;
+    tag.innerHTML = ICONS[it.type];
+    tag.appendChild(document.createTextNode(LABELS[it.type]));
+
+    var date = parseISO(it.d);
+    $("p-when").textContent = DAYS_LONG[weekday(date)] + " " + date.getUTCDate() + " " + MONTHS[date.getUTCMonth()] + (it.time ? " · " + it.time : "");
+    $("p-title").textContent = typo(it.title);
+
+    var box = $("p-fields");
+    box.textContent = "";
+    FIELDS.forEach(function (f) {
+      var val = it[f.key];
+      if (!val) return;
+      var sec = el("section", "field");
+      var label = typeof f.label === "string" ? f.label : f.label[it.type];
+      sec.appendChild(el("h3", null, label));
+      var p = el("p", f.quote ? "quote" : null, val);
+      sec.appendChild(p);
+      if (f.copy) {
+        var c = el("button", "copy", "Copier");
+        c.type = "button";
+        c.addEventListener("click", function () { copyText(val, c, p); });
+        sec.appendChild(c);
+      }
+      box.appendChild(sec);
+    });
+
+    updateDoneBtn();
+    panel.classList.add("open");
+    backdrop.classList.add("open");
+    page.inert = true;
+    document.documentElement.style.overflow = "hidden";
+    panel.querySelector(".panel-scroll").scrollTop = 0;
+    setTimeout(function () { $("close").focus(); }, 30);
+  }
+
+  function closePanel() {
+    if (!openItem) return;
+    panel.classList.remove("open");
+    backdrop.classList.remove("open");
+    page.inert = false;
+    document.documentElement.style.overflow = "";
+    var id = openItem.id;
+    openItem = null;
+    var again = document.querySelector('.card[data-id="' + id + '"]') || lastFocus;
+    if (again) again.focus();
+  }
+
+  function updateDoneBtn() {
+    var b = $("done-btn"), isDone = done.has(openItem.id);
+    b.textContent = isDone ? "C'est fait ✓ · annuler" : "Marquer comme fait";
+    b.classList.toggle("is-done", isDone);
+  }
+
+  $("done-btn").addEventListener("click", function () {
+    if (!openItem) return;
+    if (done.has(openItem.id)) done.delete(openItem.id); else done.add(openItem.id);
+    saveDone();
+    updateDoneBtn();
+    var card = document.querySelector('.card[data-id="' + openItem.id + '"]');
+    if (card) card.classList.toggle("done", done.has(openItem.id));
+  });
+
+  function copyText(text, btn, node) {
+    function flash(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = "Copier"; }, 1800); }
+    function fallback() {
+      try {
+        var r = document.createRange();
+        r.selectNodeContents(node);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(r);
+        flash("Texte sélectionné");
+      } catch (e) { flash("Sélectionne le texte"); }
+    }
+    try {
+      navigator.clipboard.writeText(text).then(function () { flash("Copié"); }, fallback);
+    } catch (e) { fallback(); }
+  }
+
+  $("close").addEventListener("click", closePanel);
+  backdrop.addEventListener("click", closePanel);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePanel(); });
+
+  renderWeek();
+})();
+</script>
+</body>
+</html>
